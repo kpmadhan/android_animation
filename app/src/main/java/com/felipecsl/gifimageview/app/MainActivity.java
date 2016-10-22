@@ -2,6 +2,7 @@ package com.felipecsl.gifimageview.app;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -20,6 +21,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   private Button btnBlur;
   private boolean shouldBlur = false;
   private Blur blur;
+  MediaPlayer mPlayer;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -59,16 +61,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       @Override protected void onPostExecute(final byte[] bytes) {
         gifImageView.setBytes(bytes);
         gifImageView.startAnimation();
+        playSound();
         Log.d(TAG, "GIF width is " + gifImageView.getGifWidth());
         Log.d(TAG, "GIF height is " + gifImageView.getGifHeight());
       }
-    }.execute("http://katemobile.ru/tmp/sample3.gif");
+    }.execute("http://4.bp.blogspot.com/-82Rob0nGCL8/VIRRGqztAqI/AAAAAAAAYfU/XSdVyJJw76s/s1600/frosch075.gif");
+
   }
 
+  void playSound() {
+    if (mPlayer != null) {
+      mPlayer.stop();
+      mPlayer.reset();
+    }
+
+    mPlayer = MediaPlayer.create(MainActivity.this, R.raw.frog);
+    mPlayer.setLooping(true);
+    mPlayer.start();
+  }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.main, menu);
     return true;
+  }
+
+  public void onDestroy() {
+    // Stop the sound
+    if (mPlayer != null) {
+      mPlayer.stop();
+      mPlayer = null;
+    }
+
+    super.onDestroy();
   }
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {
@@ -81,10 +105,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
   @Override public void onClick(final View v) {
     if (v.equals(btnToggle)) {
-      if (gifImageView.isAnimating())
+      if (gifImageView.isAnimating()) {
+        v.setBackgroundResource(R.drawable.playfilled);
+        if (mPlayer != null) {
+          mPlayer.pause();
+        }
         gifImageView.stopAnimation();
-      else
+      }
+      else{
         gifImageView.startAnimation();
+        if (mPlayer != null) {
+          mPlayer.start();
+        }
+        v.setBackgroundResource(R.drawable.pausefilled);
+      }
+
     } else if (v.equals(btnBlur)) {
       shouldBlur = !shouldBlur;
     } else {
